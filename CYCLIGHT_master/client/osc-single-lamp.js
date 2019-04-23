@@ -14,7 +14,8 @@ var varme = 0;
 5000 kelvin til 2000 kelvin
 */
 let currentTemperature, endTemperature;
-
+sunrise;
+sunset;
 // Bridge ip-adresse. Find den fx i hue app'en
 var url = '192.168.0.100';
 // Hent dit brugernavn - find det ved at følge installationsguiden her: 
@@ -67,7 +68,8 @@ function timeIt() {
     timeDiv.html(convertSeconds(timeleft - counter));
     var kelvin = map(timeleft - counter, timeleft, 0, currentTemperature, endTemperature);
     var timeTemp = Math.floor(map(kelvin, currentTemperature, endTemperature, 153, 454));
-    changeTemperature(timeTemp);    
+    changeTemperature(timeTemp);  
+  
 }
 
 function setup() {
