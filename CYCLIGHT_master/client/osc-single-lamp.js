@@ -36,7 +36,12 @@ var myRec
 //SpeechDiv er den variabel som viser hvad der bliver sagt
 var speechDiv;
 
+//Div til geodata
+var geoDiv;
+
 var i;
+
+var mainTimer;
 
 /*
 Dette er vores timer variabler. Counter er den der tæller ned og timeLeft er den tid vi har tilbage.
@@ -77,12 +82,44 @@ function timeIt() {
     changeTemperature(timeTemp);  
   
 }
+function getLocation() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(showPosition);
+    } else {
+      console.log("Geolocation is not supported by this browser.");
+    }
+  }
+
+  function showPosition(position) {
+    console.log("Latitude: " + position.coords.latitude + 
+    "<br>Longitude: " + position.coords.longitude); 
+    let apiUrl = "http://api.openweathermap.org/data/2.5/weather?lat=" + position.coords.latitude + "&lon=" + position.coords.longitude + "&APPID=996349f23ea1639b228c2ec07458a750";
+    console.log(apiUrl);
+
+    loadJSON(apiUrl ,function(data){
+        console.log(data);
+        let t = getDate();
+        sunrise = data.sys.sunrise * 1000;
+        sunset = data.sys.sunset * 1000;
+        var sunR = new Date(sunrise);
+        var sunS = new Date(sunset);
+        str = "<h5>Tid: </h5>" + t.getHours() + ":" + t.getMinutes() + ":" + t.millis()/1000;
+        str += "<h5>Solnedgang: </h5>" + sunS.getHours() + ":" + sunS.getMinutes()
+        str += "<h5>Solnedgang: </h5>" + sunS.getHours() + ":" + sunS.getMinutes()
+        geoDiv.html(str);
+    });
+  }
 
 function setup() {
+      
+    mainTimer = setInterval(getLocation, 1000);
     timeDiv = createDiv();
     timeDiv.position(300, 140);
     timeDiv.html(convertSeconds('timeleft - counter'));
     timeDiv.hide();    
+
+    geoDiv = createDiv();
+    geoDiv.position(300, 180);
 
     createCanvas(500, 500);
     setupOsc(12000, 6448); //Begynd at lytte efter OSC
