@@ -61,6 +61,12 @@ Her stiger counteren med 1. Derefter laver vi et skala fra counter og timeleft s
 TimeTemp er den skala mellem kelvin skalaen til current temperature og end temperatur.
 changeTemperatue ændre temperaturen til vores variabler. Math.floor returnerer den største heltal eller lig med et givet nummer. 
 Map funktionen vil returner en array med kvadrat rod af den alle værdier.  
+
+//Simon: Map funktionen er smart fordi den kan omregne en variabels værdi fra én skala til en anden. 
+//I dette tilfælde har vi en variabel som viser hvor mange milisekunder der er tilbage, før alarmen er sat (timeLeft - counter).
+//Den variabel går altså på en skala fra antallet af millisekunder da alarmen blev sat, til 0;
+//Det tal vil vi gerne omregne til vores Kelvin skala - fra 5000 til 2000; 
+//I nedenstående bruges map funktionen først til at finde den aktuelle Kelvin temperatur, og derefter til at sætte slideren på sin skala. 
 */
 
 function timeIt() {
