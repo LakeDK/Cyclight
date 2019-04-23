@@ -15,7 +15,7 @@ var url = '192.168.0.100';
 // Hent dit brugernavn - find det ved at følge installationsguiden her: 
 // https://developers.meethue.com/develop/get-started-2/#
 
-var username = 'HS48g05rIht2CaLLqVICaJMeMtttnrS8kmE37DTM';
+var username = 'G12lrP6D4nGv0T85Vlp3XpHdYiUdVTqto9x9oVf5';
 
 //Slidere
 var dimmer, temper;
