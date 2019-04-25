@@ -14,8 +14,8 @@ var varme = 0;
 5000 kelvin til 2000 kelvin
 */
 let currentTemperature, endTemperature;
-sunrise;
-sunset;
+var sunrise;
+var sunset;
 // Bridge ip-adresse. Find den fx i hue app'en
 var url = '192.168.0.100';
 // Hent dit brugernavn - find det ved at følge installationsguiden her: 
@@ -98,7 +98,7 @@ function getLocation() {
 
     loadJSON(apiUrl ,function(data){
         console.log(data);
-        let t = getDate();
+        let t = data.getDate();
         sunrise = data.sys.sunrise * 1000;
         sunset = data.sys.sunset * 1000;
         var sunR = new Date(sunrise);
