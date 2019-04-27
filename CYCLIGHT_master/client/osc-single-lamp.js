@@ -14,8 +14,7 @@ var varme = 0;
 5000 kelvin til 2000 kelvin
 */
 let currentTemperature, endTemperature;
-var sunrise;
-var sunset;
+var locationName, locationLon, locationLat, sunrise, sunset;
 // Bridge ip-adresse. Find den fx i hue app'en
 var url = '192.168.0.100';
 // Hent dit brugernavn - find det ved at følge installationsguiden her: 
@@ -37,7 +36,7 @@ var myRec
 var speechDiv;
 
 //Div til geodata
-var geoDiv;
+var clockDiv, geoDiv;
 
 var i;
 
@@ -45,8 +44,8 @@ var mainTimer;
 
 /*
 Dette er vores timer variabler. Counter er den der tæller ned og timeLeft er den tid vi har tilbage.
- Timer starter intervalet og timeDiv er den der viser timeren. 
- timerSet bliver brugt til at se om der er blevet registeret en timer eller ej, hvilket er grundet til at den er sat til false
+Timer starter intervalet og timeDiv er den der viser timeren. 
+timerSet bliver brugt til at se om der er blevet registeret en timer eller ej, hvilket er grundet til at den er sat til false
 
 */
 var counter = 0;
@@ -79,47 +78,69 @@ function timeIt() {
     timeDiv.html(convertSeconds(timeleft - counter));
     var kelvin = map(timeleft - counter, timeleft, 0, currentTemperature, endTemperature);
     var timeTemp = Math.floor(map(kelvin, currentTemperature, endTemperature, 153, 454));
-    changeTemperature(timeTemp);  
-  
+    changeTemperature(timeTemp);
+
 }
+
 function getLocation() {
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(showPosition);
+        navigator.geolocation.getCurrentPosition(showPosition);
     } else {
-      console.log("Geolocation is not supported by this browser.");
+        console.log("Geolocation is not supported by this browser.");
     }
-  }
+}
 
-  function showPosition(position) {
-    console.log("Latitude: " + position.coords.latitude + 
-    "<br>Longitude: " + position.coords.longitude); 
+function showPosition(position) {
+    console.log("Henter geodata");
+    console.log("Latitude: " + position.coords.latitude +
+        "<br>Longitude: " + position.coords.longitude);
     let apiUrl = "http://api.openweathermap.org/data/2.5/weather?lat=" + position.coords.latitude + "&lon=" + position.coords.longitude + "&APPID=996349f23ea1639b228c2ec07458a750";
     console.log(apiUrl);
 
-    loadJSON(apiUrl ,function(data){
+    loadJSON(apiUrl, function (data) {
         console.log(data);
-        let t = data.getDate();
         sunrise = data.sys.sunrise * 1000;
         sunset = data.sys.sunset * 1000;
+        locationName = data.name;
         var sunR = new Date(sunrise);
         var sunS = new Date(sunset);
-        str = "<h5>Tid: </h5>" + t.getHours() + ":" + t.getMinutes() + ":" + t.millis()/1000;
-        str += "<h5>Solnedgang: </h5>" + sunS.getHours() + ":" + sunS.getMinutes()
-        str += "<h5>Solnedgang: </h5>" + sunS.getHours() + ":" + sunS.getMinutes()
+        let str = "<h5>Sted: " + locationName + "</h5>"
+        str += "<h5>Solopgang: " + sunR.getHours() + ":" + sunR.getMinutes() + "</h5>"
+        str += "<h5>Solnedgang: " + sunS.getHours() + ":" + sunS.getMinutes() + "</h5>"
         geoDiv.html(str);
     });
-  }
+}
+
+function showTime() {
+    let t = new Date();
+    str = "<h5>Klokken er nu: " + t.getHours() + ":" + t.getMinutes() + ":" + t.getSeconds() + "</h5>";
+    clockDiv.html(str);
+}
+
+function draw() {
+    //Opdater klokken en gang i sekundet 
+    if(frameCount % 60 == 0){
+      showTime();  
+    }
+    //opdater position hvert tiende minut
+    if(frameCount == 1 || (frameCount % (60*60*10) == 0)){
+        getLocation();
+    }
+}
 
 function setup() {
-      
-    mainTimer = setInterval(getLocation, 1000);
-    timeDiv = createDiv();
+
+    //mainTimer = setInterval(getLocation, 1000);
+    timeDiv = createDiv("");
     timeDiv.position(300, 140);
     timeDiv.html(convertSeconds('timeleft - counter'));
-    timeDiv.hide();    
+    timeDiv.hide();
 
-    geoDiv = createDiv();
-    geoDiv.position(300, 180);
+    clockDiv = createDiv("");
+    clockDiv.position(300, 180);
+
+    geoDiv = createDiv("Hejsa");
+    geoDiv.position(300, 220);
 
     createCanvas(500, 500);
     setupOsc(12000, 6448); //Begynd at lytte efter OSC
@@ -196,7 +217,7 @@ function parseResult() {
         Hvis mostrecent indkludrer k vil det gedanne timeren og logge til konsolen at den fandt timeren + vil den 
         printe navnerne for arrayet og printe indexet ud. Så vil timeren sætte den lig med indekset gange det med en time
         til at få den nye tid. Det vil den vise i browseren ved at vise en countdown.    
-        Object.keys metoden returner navnene  for elementerne af arrayet og Object.values vil give værdierne af arrayet*/ 
+        Object.keys metoden returner navnene  for elementerne af arrayet og Object.values vil give værdierne af arrayet*/
         for (e of timeCommands) {
             for (k of Object.values(e)[0]) {
                 if (mostrecentword.includes(k)) {
@@ -208,7 +229,7 @@ function parseResult() {
                     endTemperature = 2000;
                     timeleft = indx * 60; //indx værdien bliver ganget med 3600 til at give det i timere
                     timer = setInterval(timeIt, 1000);
-                    timeDiv.show();    
+                    timeDiv.show();
 
 
 
@@ -221,7 +242,7 @@ function parseResult() {
 
     if (mostrecentword.indexOf("bedtime") !== -1) {
         bedTime = true;
-     
+
     }
 
 }
@@ -355,7 +376,7 @@ function setupOsc(oscPortIn, oscPortOut) {
     socket.on('message', function (msg) {
         if (msg[0] == '#bundle') {
             for (var i = 2; i < msg.length; i++) {
-                receiveOsc(msg[i][0], msg[i].splice(1));
+                receiveOsc(msg[0], msg.splice(1));
             }
         } else {
             receiveOsc(msg[0], msg.splice(1));
