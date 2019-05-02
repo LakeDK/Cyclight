@@ -39,8 +39,14 @@ var speechDiv;
 var clockDiv, geoDiv;
 
 var i;
+//En variabel der indholder den nuværende tid
+var timeNow;
 
 var mainTimer;
+//maxTime er den tid på dagen hvor systemet skal fra lyse maskimalt og downTime er det antal millisekunder før solnedgang hvor systemet skal skrue ned
+var maxTime;
+var downTime = 60000;
+
 
 /*
 Dette er vores timer variabler. Counter er den der tæller ned og timeLeft er den tid vi har tilbage.
@@ -53,6 +59,12 @@ var timeleft = 0;
 var timer;
 var timeDiv;
 var timerSet = false;
+//Kelvin max og min
+var kelvinMax;
+var kelvinMin;
+//Kelvin slidere max og min
+const kelvinSliderMax=454;
+const kelvinSliderMin=153;
 //Funktionen convertSeconds ændre sekunder til minutter som indholder variablen s som er sat til 60. Var min hvor vi omregner det til minutter og i sec omregner det til sec.
 function convertSeconds(s) {
     var min = floor(s / 60);
@@ -77,17 +89,35 @@ function timeIt() {
     counter++;
     timeDiv.html(convertSeconds(timeleft - counter));
     var kelvin = map(timeleft - counter, timeleft, 0, currentTemperature, endTemperature);
-    var timeTemp = Math.floor(map(kelvin, currentTemperature, endTemperature, 153, 454));
+    var timeTemp = Math.floor(map(kelvin, currentTemperature, endTemperature, kelvinSliderMin, kelvinSliderMax));
     changeTemperature(timeTemp);
 
 }
 
 function getLocation() {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(showPosition);
-    } else {
-        console.log("Geolocation is not supported by this browser.");
+    //maxTime skal være denne dags middag
+    maxTime = new Date();
+    if (maxTime.getHours() == 0) {
+        maxTime.setDate(maxTime.getDate() + 1);
+    } 
+    maxTime.setHours(12, 0, 0, 0)
+    timeNow = new Date();
+    timeNow.setTime(timeNow.getTime() + (60*60*1000)); 
+
+    if (!timerSet) {
+       if (navigator.geolocation) {
+           navigator.geolocation.getCurrentPosition(showPosition);
+        } else {
+            console.log("Geolocation is not supported by this browser.");
+        }
+        //Hvis klokken er større end maxTime og mindre end sunset - downtime så sæt temperaturen til fuld lystyrke
+        if(timeNow.getTime() > maxTime.getTime()){
+            var timeTemp = Math.floor(map(kelvinMin, kelvinMax, kelvinSliderMin, kelvinSliderMax));
+            changeTemperature(timeTemp);
+            console.log("Dægn: max temperatur");
+        }
     }
+
 }
 
 function showPosition(position) {
@@ -104,26 +134,30 @@ function showPosition(position) {
         locationName = data.name;
         var sunR = new Date(sunrise);
         var sunS = new Date(sunset);
+        var F = data.main.temp;
+        var C = (5 / 9) * (F - 32);
         let str = "<h5>Sted: " + locationName + "</h5>"
         str += "<h5>Solopgang: " + sunR.getHours() + ":" + sunR.getMinutes() + "</h5>"
         str += "<h5>Solnedgang: " + sunS.getHours() + ":" + sunS.getMinutes() + "</h5>"
+        str += "<h5>Temperatur: " + F + "</h5>"
         geoDiv.html(str);
     });
 }
 
 function showTime() {
-    let t = new Date();
-    str = "<h5>Klokken er nu: " + t.getHours() + ":" + t.getMinutes() + ":" + t.getSeconds() + "</h5>";
+    timeNow = new Date();
+    timeNow.setTime(timeNow.getTime() + (60*60*1000)); 
+    str = "<h5>Klokken er nu: " + timeNow.getHours() + ":" + timeNow.getMinutes() + ":" + timeNow.getSeconds() + "</h5>";
     clockDiv.html(str);
 }
 
 function draw() {
-    //Opdater klokken en gang i sekundet 
-    if(frameCount % 60 == 0){
-      showTime();  
-    }
+        //Opdater klokken en gang i sekundet 
+        if (frameCount % 60 == 0) {
+            showTime();
+        }
     //opdater position hvert tiende minut
-    if(frameCount == 1 || (frameCount % (60*60*10) == 0)){
+    if (frameCount == 1 || (frameCount % (60 * 60 * 10) == 0)) {
         getLocation();
     }
 }
