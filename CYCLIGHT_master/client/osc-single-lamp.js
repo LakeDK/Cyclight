@@ -43,8 +43,8 @@ var i;
 var timeNow;
 
 var mainTimer;
-//maxTime er den tid på dagen hvor systemet skal fra lyse maskimalt og downTime er det antal millisekunder før solnedgang hvor systemet skal skrue ned
-var maxTime;
+//upTime er den tid på dagen hvor systemet skal fra lyse maskimalt og downTime er det antal millisekunder før solnedgang hvor systemet skal skrue ned
+var upTime;
 var downTime = 60000;
 
 
@@ -95,23 +95,24 @@ function timeIt() {
 }
 
 function getLocation() {
-    //maxTime skal være denne dags middag
-    maxTime = new Date();
-    if (maxTime.getHours() == 0) {
-        maxTime.setDate(maxTime.getDate() + 1);
+    //upTime skal være denne dags middag
+    upTime = new Date();
+    if (upTime.getHours() == 0) {
+        upTime.setDate(upTime.getDate() + 1);
     } 
-    maxTime.setHours(12, 0, 0, 0)
+    upTime.setHours(12, 0, 0, 0)
     timeNow = new Date();
     timeNow.setTime(timeNow.getTime() + (60*60*1000)); 
 
     if (!timerSet) {
        if (navigator.geolocation) {
            navigator.geolocation.getCurrentPosition(showPosition);
+           
         } else {
             console.log("Geolocation is not supported by this browser.");
         }
-        //Hvis klokken er større end maxTime og mindre end sunset - downtime så sæt temperaturen til fuld lystyrke
-        if(timeNow.getTime() > maxTime.getTime()){
+        //Hvis klokken er større end upTime og mindre end sunset - downtime så sæt temperaturen til fuld lystyrke
+        if(timeNow.getTime() > upTime.getTime()){
             var timeTemp = Math.floor(map(kelvinMin, kelvinMax, kelvinSliderMin, kelvinSliderMax));
             changeTemperature(timeTemp);
             console.log("Dægn: max temperatur");
@@ -163,6 +164,8 @@ function draw() {
 }
 
 function setup() {
+
+
 
     //mainTimer = setInterval(getLocation, 1000);
     timeDiv = createDiv("");
