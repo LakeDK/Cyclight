@@ -16,17 +16,17 @@ var varme = 0;
 let currentTemperature, endTemperature;
 var locationName, locationLon, locationLat, sunrise, sunset;
 // Bridge ip-adresse. Find den fx i hue app'en
-var url = '192.168.0.100';
+var url = '192.168.0.102';
 // Hent dit brugernavn - find det ved at følge installationsguiden her: 
 // https://developers.meethue.com/develop/get-started-2/#
 
-var username = 'i5HJnW3IiamT4InBYK-7TlwuMA1MFeVMAqHslSfj';
+var username = 'Fk6lObW25BNMBQ6jL3nnRoBND8F0Pkpwjx9Ooyqm';
 
 //Slidere
 var dimmer, temper;
 
 //Den pære du vil kontrollere
-var lightNumber = 10;
+var lightNumber = 10 ;
 
 //Den osc besked du vil modtage fra Wekinator
 var osc_address = "/wek/outputs";

@@ -5,7 +5,7 @@ var varme = 0;
 */
 const endTemperature = 2000;
 const maxTemperature = 6000;
-const changeTemperatureDuration = 60 * 1000 * 30;
+const changeTemperatureDuration = 30 * 60 * 1000;
 let CurrentTemperature;
 
 //Variable til solopgang og solnedgang klokkeslet
@@ -13,11 +13,11 @@ let sunR, sunS;
 
 var locationName, locationLon, locationLat, sunrise, sunset;
 // Bridge ip-adresse. Find den fx i hue app'en
-var url = '192.168.0.100';
+var url = '192.168.0.102';
 // Hent dit brugernavn - find det ved at følge installationsguiden her: 
 // https://developers.meethue.com/develop/get-started-2/#
 
-var username = 'i5HJnW3IiamT4InBYK-7TlwuMA1MFeVMAqHslSfj';
+var username = 'HPZbeOX0KSAZKlsiGn2wMnfdrCtpBvkxDa3oTKO3';
 
 //Slidere
 var dimmer, temper;
@@ -38,7 +38,7 @@ const kelvinSliderMin = 153;
 //Denne metode sætter pærens temperatur og henter appens position
 function getLocation() {
   timeNow = new Date();
-  timeNow.setTime(timeNow.getTime() + (60 * 60 * 1000));
+  //timeNow.setTime(timeNow.getTime() + (60 * 60 * 1000));
   if (!timerSet) {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(showPosition);
@@ -53,19 +53,29 @@ function setTemperature(){
   console.log("Time Now: ", timeNow.getTime());
   console.log("Sunrise: ", sunR.getTime());
   console.log("Sunset: ", sunS.getTime());
+
   sunRMillis = sunR.getTime();
   sunSMillis = sunS.getTime();
   timeNowMillis = timeNow.getTime();
   //Er vi i gang med en solopgang?
-  if(sunRMillis + changeTemperatureDuration > timeNowMillis && timeNowMillis > sunRMillis){
-    var millisSinceSunrise = timeNowMillis - sunRMillis;
-    var kelvin = map(millisSinceSunrise, changeTemperatureDuration, 0, kelvinMin, kelvinMax);
-    var sliderValue = map(millisSinceSunrise, changeTemperatureDuration, 0, kelvinSliderMin, kelvinSliderMax);
+  /*
+ let stopTid = new Date(sunRMillis);
+  console.log(stopTid.getHours() + " " + stopTid.getMinutes());
+  console.log(sunS.getHours() + " " + timeNow.getMinutes());
+  */
+  
+  var millisSinceSunrise = timeNowMillis - sunRMillis;
+  console.log("Millisekunder siden solopgang: "+ millisSinceSunrise);
+  console.log("Millisekunder når slut: "+ changeTemperatureDuration);
+
+  if((sunRMillis + changeTemperatureDuration > timeNowMillis) && timeNowMillis > sunRMillis){
+    var kelvin = map(millisSinceSunrise, 0, changeTemperatureDuration, kelvinMin, kelvinMax);
+    var sliderValue = map(millisSinceSunrise, 0, changeTemperatureDuration, kelvinSliderMin, kelvinSliderMax);
+    console.log("Slider value skal så være: " + sliderValue);
     temper.value(sliderValue);
-    oscChangeTemperature(kelvi);
+    oscChangeTemperature(kelvin);
     console.log("Temeratur sat til: " + kelvin);
   }else if(sunSMillis - changeTemperatureDuration < timeNowMillis && timeNowMillis < sunSMillis){
-    var millisSinceSunrise = timeNowMillis - sunRMillis;
     var kelvin = map(millisSinceSunrise, changeTemperatureDuration, 0, kelvinMin, kelvinMax);
     var sliderValue = map(millisSinceSunrise, changeTemperatureDuration, 0, kelvinSliderMin, kelvinSliderMax);
     temper.value(sliderValue);
@@ -89,7 +99,7 @@ function showPosition(position) {
   console.log(apiUrl);
   loadJSON(apiUrl, function (data) {
     console.log(data);
-    sunrise = data.sys.sunrise * 1000;
+    sunrise = data.sys.sunrise * 1000; 
     sunset = data.sys.sunset * 1000;
     locationName = data.name;
     sunR = new Date(sunrise);
@@ -97,7 +107,7 @@ function showPosition(position) {
     let str = "<h5>Sted: " + locationName + "</h5>"
     str += "<h5>Solopgang: " + sunR.getHours() + ":" + sunR.getMinutes() + "</h5>"
     str += "<h5>Solnedgang: " + sunS.getHours() + ":" + sunS.getMinutes() + "</h5>"
-    geoDiv.html(str);
+   geoDiv.html(str);
     setTemperature();
   });
 }
@@ -137,21 +147,23 @@ function setup() {
   setupOsc(12000, 6448); //Begynd at lytte efter OSC
 
   resultDiv = createDiv('Hub response'); // a div for the Hue hub's responses
-  resultDiv.position(10, 260); // position it
+  resultDiv.position(10, 400); // position it
 
   speechDiv = createDiv('OSC response'); // a div for the Hue hub's responses
   speechDiv.position(10, 140); // position it
 
   dimmer = createSlider(1, 254, 127) // createslider(min, max, default,step)
   dimmer.position(10, 10); // position it
+  dimmer.mouseReleased(changeBrightness);
 
   temper = createSlider(153, 454, 250) // a slider to dim one light
   temper.position(10, 40); // position it
+  temper.mouseReleased(changeTemperature); // mouseReleased callback function
 
   text("Lysstyrke", dimmer.x * 2 + dimmer.width, 14);
   text("Temperatur", temper.x * 2 + temper.width, 44);
   textSize(144);
-  text(lightNumber, 300, 100);
+  text(lightNumber, 153, 100);
 
 }
 
@@ -219,7 +231,6 @@ function oscChangeTemperature(varme) {
       ct: varme,
       on: true
   }
-  temper.value(varme);
   // make the HTTP call with the JSON object:
   setLight(lightNumber, lightState);
 }
@@ -254,7 +265,7 @@ function receiveOsc(address, value) {
   }
   lys = parseInt(map(lys, 0, 1, 1, 254));
   varme = parseInt(map(varme, 0, 1, 153, 500));
-  oscDiv.html("OSC Lys: " + lys + " Varme: " + varme + "<hr/>");
+  fDiv.html("OSC Lys: " + lys + " Varme: " + varme + "<hr/>");
 
   if (frameCount % 5 == 0) {
       oscChangeBrightness(lys);
