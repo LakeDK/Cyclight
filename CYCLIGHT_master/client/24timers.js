@@ -1,10 +1,16 @@
+//timer
+var counter = 0;
+var timeleft = 0;
+var timer;
+var timeDiv;
+var timerSet = false;
+//lys varme 
 var lys = 0;
 var varme = 0;
 /*Vi deklare CurrentTemperature og endTemperature. Det er den kelvin skala som går fra 
 5000 kelvin til 2000 kelvin. changeTemperatureDuration er det tidsrum det skal tage i millisekunder, for pæren at skifte temperatur
 */
-const endTemperature = 2000;
-const maxTemperature = 6000;
+
 const changeTemperatureDuration = 30 * 60 * 1000;
 let CurrentTemperature;
 
@@ -13,11 +19,11 @@ let sunR, sunS;
 
 var locationName, locationLon, locationLat, sunrise, sunset;
 // Bridge ip-adresse. Find den fx i hue app'en
-var url = '192.168.0.102';
+var url = '192.168.0.100';
 // Hent dit brugernavn - find det ved at følge installationsguiden her: 
 // https://developers.meethue.com/develop/get-started-2/#
 
-var username = 'HPZbeOX0KSAZKlsiGn2wMnfdrCtpBvkxDa3oTKO3';
+var username = 'S8Ci9upM7Qdo4UnfC9IpjqdY4v5X20FS3UNs840r';
 
 //Slidere
 var dimmer, temper;
@@ -30,22 +36,59 @@ var clockDiv, geoDiv;
 
 var timerSet = false;
 var timeNow;
-const kelvinMax = 6000;
-const kelvinMin = 2000;
-const kelvinSliderMax = 454;
+var timeDiv;
+
+//Svarer til 1800 Kelvin
+const kelvinSliderMax = 555;
+
+//svarer til 6500 Kelvin
 const kelvinSliderMin = 153;
+
+function convertSeconds(s) {
+  var min = floor(s / 60);
+  var sec = s % 60;
+  //Her for vi returnet vores minuter og sekunder med seks decimaler.
+  return nf(min, 3) + ':' + nf(sec, 3);
+}
+/*timeBedtime er hvor den udregner counteren. 
+Her stiger counteren med 1. Derefter laver vi et skala fra counter og timeleft som begge er 0 til current og endtemperature. 
+TimeTemp er den skala mellem kelvin skalaen til current temperature og end temperatur.
+changeTemperatue ændre temperaturen til vores variabler. Math.floor returnerer den største heltal eller lig med et givet nummer. 
+Map funktionen vil returner en array med kvadrat rod af den alle værdier.  
+
+//Simon: Map funktionen er smart fordi den kan omregne en variabels værdi fra én skala til en anden. 
+//I dette tilfælde har vi en variabel som viser hvor mange milisekunder der er tilbage, før alarmen er sat (timeLeft - counter).
+//Den variabel går altså på en skala fra antallet af millisekunder da alarmen blev sat, til 0;
+//Det tal vil vi gerne omregne til vores Kelvin skala - fra 5000 til 2000; 
+//I nedenstående bruges map funktionen først til at finde den aktuelle Kelvin temperatur, og derefter til at sætte slideren på sin skala. 
+*/
+
+function timeBedtime() {
+  counter++;
+  timeDiv.html(convertSeconds(timeleft - counter));
+  //sliderValue skalaen er timeleft - counter på en skala fra 0 til timeleft og en skala fra kelvinSliderMax til kelvinSliderMin
+  var sliderValue = map(timeleft - counter, 0, timeleft, kelvinSliderMax, kelvinSliderMin);
+///Så temperaturens værdi skal følge skalaen
+  temper.value(sliderValue);
+  //Funktionen changeTemperature skal følge skalaen 
+  changeTemperature(sliderValue);
+  //Når tiden slutter skal betime være false og den clear timeren. Den skal også gemme timeren
+  if(counter == timeleft){
+    bedTime = false;
+    clearInterval(timer);
+    timeDiv.hide();
+  }
+}
 
 //Denne metode sætter pærens temperatur og henter appens position
 function getLocation() {
   timeNow = new Date();
   //timeNow.setTime(timeNow.getTime() + (60 * 60 * 1000));
-  if (!timerSet) {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(showPosition);
     } else {
       console.log("Geolocation is not supported by this browser.");
     }
-  }
 }
 
 function setTemperature(){
@@ -67,34 +110,39 @@ function setTemperature(){
   var millisSinceSunrise = timeNowMillis - sunRMillis;
   console.log("Millisekunder siden solopgang: "+ millisSinceSunrise);
   console.log("Millisekunder når slut: "+ changeTemperatureDuration);
+/*Der laves 3 if statements som indholder de tre forskellige scenariorer der kan ske.
+Princippet bag dem er den enten chekcer om der en halvtime efter sunR og der en halvtime før sunS
+*/
 
+  //HVIS det er en halv time efter solopganng skrues kelvintemperaturen langsomt op 
   if((sunRMillis + changeTemperatureDuration > timeNowMillis) && timeNowMillis > sunRMillis){
-    var kelvin = map(millisSinceSunrise, 0, changeTemperatureDuration, kelvinMin, kelvinMax);
     var sliderValue = map(millisSinceSunrise, 0, changeTemperatureDuration, kelvinSliderMin, kelvinSliderMax);
     console.log("Slider value skal så være: " + sliderValue);
     temper.value(sliderValue);
-    oscChangeTemperature(kelvin);
-    console.log("Temeratur sat til: " + kelvin);
+    changeTemperature(sliderValue);
+    console.log("Solopgang");
+
+  //HVIS det er en halv time før solnedgang skrues kelvintemperaturen langsomt op 
   }else if(sunSMillis - changeTemperatureDuration < timeNowMillis && timeNowMillis < sunSMillis){
-    var kelvin = map(millisSinceSunrise, changeTemperatureDuration, 0, kelvinMin, kelvinMax);
-    var sliderValue = map(millisSinceSunrise, changeTemperatureDuration, 0, kelvinSliderMin, kelvinSliderMax);
+    var sliderValue = map(millisSinceSunrise, changeTemperatureDuration, 0,kelvinSliderMax ,kelvinSliderMin);
     temper.value(sliderValue);
-    oscChangeTemperature(kelvin);
-    console.log("Temeratur sat til: " + kelvin);
+    changeTemperature(sliderValue);
+    console.log("Solnedgang");
+
+  //ELLERS sættes kelvintemperaturen til det maksimale - dagen er i gang  
   }else{
-    var sliderValue = map(kelvinMax, changeTemperatureDuration, 0, kelvinSliderMin, kelvinSliderMax);
-    oscChangeTemperature(kelvinMax);
-    console.log("Temeratur sat til: " + kelvinMax);
+    changeTemperature(kelvinSliderMin);
+    temper.value(kelvinSliderMin);
+    console.log("Dag");
   }
-
-
-
 }
-
+/*I showPosition henter vi data omkring vores koordinater. Vi henter også data omkring
+solopgang og solnedgang. Derefter har vi et if-statement der siger hvis der ikke sat en timer skal 
+den sætte temperaturen efter solopgang - solnedgang(rutine)
+*/
 function showPosition(position) {
   console.log("Henter geodata");
-  console.log("Latitude: " + position.coords.latitude +
-    "<br>Longitude: " + position.coords.longitude);
+  console.log("Latitude: " + position.coords.latitude + "<br>Longitude: " + position.coords.longitude);
   let apiUrl = "http://api.openweathermap.org/data/2.5/weather?lat=" + position.coords.latitude + "&lon=" + position.coords.longitude + "&APPID=996349f23ea1639b228c2ec07458a750";
   console.log(apiUrl);
   loadJSON(apiUrl, function (data) {
@@ -108,10 +156,12 @@ function showPosition(position) {
     str += "<h5>Solopgang: " + sunR.getHours() + ":" + sunR.getMinutes() + "</h5>"
     str += "<h5>Solnedgang: " + sunS.getHours() + ":" + sunS.getMinutes() + "</h5>"
    geoDiv.html(str);
+   if (!timerSet) {
     setTemperature();
+   }
   });
 }
-
+//showTime viser den nuværende tid 
 function showTime() {
   timeNow = new Date();
   timeNow.setTime(timeNow.getTime());
@@ -133,6 +183,10 @@ function draw() {
 function setup() {
   connect();
 
+  timeDiv = createDiv("");
+  timeDiv.position(300, 100);
+  timeDiv.html(convertSeconds('timeleft - counter'));
+  timeDiv.hide();
 
   clockDiv = createDiv("");
   clockDiv.position(300, 180);
@@ -156,14 +210,88 @@ function setup() {
   dimmer.position(10, 10); // position it
   dimmer.mouseReleased(changeBrightness);
 
-  temper = createSlider(153, 454, 250) // a slider to dim one light
+  temper = createSlider(kelvinSliderMin, kelvinSliderMax, 250) // a slider to dim one light
   temper.position(10, 40); // position it
   temper.mouseReleased(changeTemperature); // mouseReleased callback function
 
   text("Lysstyrke", dimmer.x * 2 + dimmer.width, 14);
   text("Temperatur", temper.x * 2 + temper.width, 44);
   textSize(144);
-  text(lightNumber, 153, 100);
+  text(lightNumber, 300, 100);
+    
+  //-----bedtime kommando-----
+    //P5
+    //P5 Speech objekter
+    myRec = new p5.SpeechRec('en-US', parseResult); // new P5.SpeechRec object
+    myRec.continuous = true; // do continuous recognition
+    myRec.interimResults = true; // allow partial recognition (faster, less accurate)
+    myRec.onResult = parseResult; // now in the constructor
+    myRec.onEnd = genStart;
+    myRec.start(); // start engine
+
+}
+
+//Speech handling functions
+//Funktion genStart genstarter speech recognition for at den bliver ved med at lytte
+function genStart() {
+    console.log("Genstarter webspeech");
+    myRec.start();
+}
+//bedTime er false fordi så ved den hvornår bliver den kaldt
+let bedTime = false;
+//timeCommands er elementer af arrays der beskriver kommandoerne og deres forskellige måder de kan blive sagt
+let timeCommands = [{
+        "1": ["one", "1", "en"]
+    },
+    {
+        "2": ["two", "2", "to"]
+    },
+    {
+        "3": ["three", "free", "3"]
+    },
+];
+
+
+function parseResult() {
+    // recognition system will often append words into phrases.
+    // so hack here is to only use the last word:
+    //Laver mostrecentword til en string
+    var mostrecentword = myRec.resultString.split(' ').pop();
+    speechDiv.html(mostrecentword);
+    if (bedTime) {
+        console.log("Bedtime set, waiting for hours...");
+        //Hvis du siger 1 får du tallet '0' og ta bliver tilagt så vi får den korrekte placering.
+        //ta lægger plus 1 til din array så den får den korrekte rækkefølge. Indx er det sammen som ta
+        let ta = 1;
+        let indx = 1;
+        //Her begynder vores timer
+        /*For hver begivenhed(e) af timeCommands vil den returnere  værdiene af arrayet af k som er lige med e. 
+        Hvis mostrecent indkludrer k vil det gedanne timeren og logge til konsolen at den fandt timeren + vil den 
+        printe navnerne for arrayet og printe indexet ud. Så vil timeren sætte den lig med indekset gange det med en time
+        til at få den nye tid. Det vil den vise i browseren ved at vise en countdown.    
+        Object.keys metoden returner navnene  for elementerne af arrayet og Object.values vil give værdierne af arrayet*/
+        for (e of timeCommands) {
+            for (k of Object.values(e)[0]) {
+                if (mostrecentword.includes(k)) {
+                    clearInterval(timer);
+                    console.log("Fandt timer: " + Object.keys(e) + "Med index: " + ta);
+                    indx = ta;
+                    timerSet = true;
+                    timeleft = indx * 60; //indx værdien bliver ganget med 3600 til at give det i timere
+                    //Opdater hver sekund
+                    timer = setInterval(timeBedtime, 1000);
+                    timeDiv.show();
+                }
+            }
+            ta++;
+        }
+    }
+    //Hvis der bliver sagt bedtime er funktioen sat til true;
+
+    if (mostrecentword.indexOf("bedtime") !== -1) {
+        bedTime = true;
+
+    }
 
 }
 
@@ -200,12 +328,12 @@ function changeBrightness() {
 //Det her vi ændre temperaturen 
 function changeTemperature(t) {
   var temperature;
-  console.log("Sætter temp: " + t);
   if (t > 0) {
       temperature = t;
-      temper.value(t);
-  } else {
+      console.log("Sætter temp: " + t);
+    } else {
       temperature = this.value(); // get the value of this slider
+      console.log("Sætter temp: " + this.value());
   }
 
   var lightState = { // make a JSON object with it
@@ -226,15 +354,6 @@ function oscChangeBrightness(lys) {
   setLight(lightNumber, lightState);
 }
 
-function oscChangeTemperature(varme) {
-  var lightState = { // make a JSON object with it
-      ct: varme,
-      on: true
-  }
-  // make the HTTP call with the JSON object:
-  setLight(lightNumber, lightState);
-}
-
 /*
 this function makes an HTTP PUT call to change the properties of the lights:
 HTTP PUT http://your.hue.hub.address/api/username/lights/lightNumber/state/
@@ -246,7 +365,6 @@ bri: brightness
 */
 function setLight(whichLight, data) {
   var path = url + whichLight + '/state/';
-
   var content = JSON.stringify(data); // convert JSON obj to string
   httpDo(path, 'PUT', content, 'text', getLights); //HTTP PUT the change
 }
@@ -257,22 +375,6 @@ function setLight(whichLight, data) {
 Nedenstående er OSC funktioner. 
 */
 
-
-function receiveOsc(address, value) {
-  if (address == osc_address) {
-      lys = value[0];
-      varme = value[1];
-  }
-  lys = parseInt(map(lys, 0, 1, 1, 254));
-  varme = parseInt(map(varme, 0, 1, 153, 500));
-  fDiv.html("OSC Lys: " + lys + " Varme: " + varme + "<hr/>");
-
-  if (frameCount % 5 == 0) {
-      oscChangeBrightness(lys);
-      oscChangeTemperature(varme);
-  }
-  //console.log("Received osc : " + address + " " + value);
-}
 
 function sendOsc(address, value) {
   socket.emit('message', [address].concat(value));
@@ -295,6 +397,7 @@ function setupOsc(oscPortIn, oscPortOut) {
           }
       });
   });
+
   socket.on('message', function (msg) {
       if (msg[0] == '#bundle') {
           for (var i = 2; i < msg.length; i++) {

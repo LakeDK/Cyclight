@@ -16,11 +16,11 @@ var varme = 0;
 let currentTemperature, endTemperature;
 var locationName, locationLon, locationLat, sunrise, sunset;
 // Bridge ip-adresse. Find den fx i hue app'en
-var url = '192.168.0.102';
+var url = '192.168.0.100';
 // Hent dit brugernavn - find det ved at følge installationsguiden her: 
 // https://developers.meethue.com/develop/get-started-2/#
 
-var username = 'Fk6lObW25BNMBQ6jL3nnRoBND8F0Pkpwjx9Ooyqm';
+var username = 'rQGIq7sMg2Myw8X9UIW4y6DHFVeX-U09UjpX2nqA';
 
 //Slidere
 var dimmer, temper;
@@ -205,14 +205,14 @@ function setup() {
     text(lightNumber, 300, 100);
     connect(); // connect to Hue hub; it will show all light states
 
-    //P5
+//P5
     //P5 Speech objekter
     myRec = new p5.SpeechRec('en-US', parseResult); // new P5.SpeechRec object
     myRec.continuous = true; // do continuous recognition
     myRec.interimResults = true; // allow partial recognition (faster, less accurate)
     myRec.onResult = parseResult; // now in the constructor
     myRec.onEnd = genStart;
-    myRec.start(); // start engine
+    myRec.start(); // start engine    
 }
 
 
@@ -262,8 +262,6 @@ function parseResult() {
                     console.log("Fandt timer: " + Object.keys(e) + "Med index: " + ta);
                     indx = ta;
                     timerSet = true;
-                    currentTemperature = 5000;
-                    endTemperature = 2000;
                     timeleft = indx * 60; //indx værdien bliver ganget med 3600 til at give det i timere
                     timer = setInterval(timeIt, 1000);
                     timeDiv.show();
