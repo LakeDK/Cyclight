@@ -11,8 +11,8 @@ var lys = 0;
 var varme = 0;
 
 /*
-changeTemperatureDuration er en konstandt. 
-Konstandten er 30 * 60 * 1000, 
+changeTemperatureDuration er en konstant. 
+Konstanten er 30 * 60 * 1000, 
 fordi den skal være en 30 min i millisekunder
 */
 const changeTemperatureDuration = 30 * 60 * 1000;
@@ -45,14 +45,19 @@ var lightNumber = 10;
 //Div til geodata
 var clockDiv, geoDiv;
 
+//timerSet ser om der er sat en timer
 var timerSet = false;
+
+//timeNow er tiden nu
 var timeNow;
+
+//timeDiv er timer
 var timeDiv;
 
-//Svarer til 1800 Kelvin
+//De 555, som er sliderens maximum værdi, svarer til 1800 Kelvin lysstyrke
 const kelvinSliderMax = 555;
 
-//svarer til 6500 Kelvin
+//De 153, som er sliderens minimum værdi, svarer til 6500 Kelvin lysstyrke
 const kelvinSliderMin = 153;
 
 /*
@@ -73,17 +78,16 @@ function convertSeconds(s) {
 
 /*
 timeBedtime er hvor den udregner counteren. 
-Her stiger counteren med 1. 
-Derefter laver vi et skala fra counter og timeleft som begge er 0 til current og endtemperature. 
-TimeTemp er den skala mellem kelvin skalaen til current temperature og end temperatur.
-changeTemperatue ændre temperaturen til vores variabler. Math.floor returnerer den største heltal eller lig med et givet nummer. 
-Map funktionen vil returner en array med kvadrat rod af den alle værdier.  
+Her stiger counteren med 1. Derefter laver vi et skala fra counter og timeleft som begge er 0 til current og endtemperature. 
 
-Simon: Map funktionen er smart fordi den kan omregne en variabels værdi fra én skala til en anden. 
-I dette tilfælde har vi en variabel som viser hvor mange milisekunder der er tilbage, før alarmen er sat (timeLeft - counter).
-Den variabel går altså på en skala fra antallet af millisekunder da alarmen blev sat, til 0;
-Det tal vil vi gerne omregne til vores Kelvin skala - fra 5000 til 2000; 
-I nedenstående bruges map funktionen først til at finde den aktuelle Kelvin temperatur, og derefter til at sætte slideren på sin skala. 
+TimeTemp er den skala mellem kelvin skalaen til current temperature og end temperatur.
+
+changeTemperatue ændre temperaturen til vores variabler. Math.floor returnerer den største heltal eller lig med et givet nummer. 
+
+Map funktionen er en funktion der omregner variabler og konstanter, og derefter sætter det ind i en stor skala med alle værdierne.
+I funktionen nedenunder kan man se at vi har en variablerne (timeleft - counter), 0, timeleft, kelvinSliderMax, kelvenSliderMin.
+Den første variable går fra (timeleft - counter) til 0.
+I funktionen under bruges map til udregne hvilken værdi slideren skal have. 
 */
 function timeBedtime() {
   counter++;
@@ -219,14 +223,14 @@ function setup() {
 
   timeDiv = createDiv("");
   timeDiv.position(300, 100);
-  timeDiv.html(convertSeconds('timeleft - counter'));
-  timeDiv.hide();
+  timeDiv.html(convertSeconds('timeleft - counter')); //timeDiv er timeren og her bliver den lavet om til minutter og sekunder 
+  timeDiv.hide(); //hide betyder at den gemmes når den ikke er i brug
 
-  clockDiv = createDiv("");
-  clockDiv.position(300, 180);
+  clockDiv = createDiv(""); //det er tiden nu
+  clockDiv.position(300, 180); //positionen for klokken
 
-  geoDiv = createDiv("Hejsa");
-  geoDiv.position(300, 220);
+  geoDiv = createDiv("Hejsa"); //vores location
+  geoDiv.position(300, 220); 
 
   createCanvas(500, 500);
 
@@ -282,8 +286,29 @@ let timeCommands = [{
     "2": ["two", "2", "to"]
   },
   {
-    "3": ["three", "free", "3"]
+    "3": ["three", "free", "3", "tre", "træ"]
   },
+  {
+    "4":["four","for","4", "fire"]
+  }
+  {
+    "5":["five","5","fem"]
+  }
+  {
+    "6":["six","6", "seks"]
+  }
+  {
+    "7":["seven","7", "syv"]
+  }
+  {
+    "8":["eight","8", "otte"]
+  }
+  {
+    "9":["nine","9", "ni"]
+  }
+  {
+    "10":["ten","10", "ti"]
+  }
 ];
 
 
