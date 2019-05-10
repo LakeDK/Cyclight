@@ -77,12 +77,7 @@ function convertSeconds(s) {
 }
 
 /*
-timeBedtime er hvor den udregner counteren. 
-Her stiger counteren med 1. Derefter laver vi et skala fra counter og timeleft som begge er 0 til current og endtemperature. 
-
-TimeTemp er den skala mellem kelvin skalaen til current temperature og end temperatur.
-
-changeTemperatue ændre temperaturen til vores variabler. Math.floor returnerer den største heltal eller lig med et givet nummer. 
+timeBedtime er hvor den udregner counteren.  
 
 Map funktionen er en funktion der omregner variabler og konstanter, og derefter sætter det ind i en stor skala med alle værdierne.
 I funktionen nedenunder kan man se at vi har en variablerne (timeleft - counter), 0, timeleft, kelvinSliderMax, kelvenSliderMin.
