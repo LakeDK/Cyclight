@@ -72,18 +72,18 @@ function convertSeconds(s) {
 }
 
 /*
+
 timeBedtime er hvor den udregner counteren. 
 Her stiger counteren med 1. Derefter laver vi et skala fra counter og timeleft som begge er 0 til current og endtemperature. 
 TimeTemp er den skala mellem kelvin skalaen til current temperature og end temperatur.
 changeTemperatue ændre temperaturen til vores variabler.
  Math.floor returnerer den største heltal eller lig med et givet nummer. 
-Map funktionen vil returner en array med kvadrat rod af den alle værdier.  
+ 
+Map funktionen er en funktion der omregner variabler og konstanter, og derefter sætter det ind i en stor skala med alle værdierne.
+I funktionen nedenunder kan man se at vi har en variablerne (timeleft - counter), 0, timeleft, kelvinSliderMax, kelvenSliderMin.
+Den første variable går fra (timeleft - counter) til 0.
+I funktionen under bruges map til udregne hvilken værdi slideren skal have. 
 
-Simon: Map funktionen er smart fordi den kan omregne en variabels værdi fra én skala til en anden. 
-I dette tilfælde har vi en variabel som viser hvor mange milisekunder der er tilbage, før alarmen er sat (timeLeft - counter).
-Den variabel går altså på en skala fra antallet af millisekunder da alarmen blev sat, til 0;
-Det tal vil vi gerne omregne til vores Kelvin skala - fra 5000 til 2000; 
-I nedenstående bruges map funktionen først til at finde den aktuelle Kelvin temperatur, og derefter til at sætte slideren på sin skala. 
 */
 function timeBedtime() {
   counter++;
@@ -105,8 +105,18 @@ function timeBedtime() {
     timeDiv.hide();
   }
 }
+/*
+I funktionen getLocation bruger vi HTML geolocation API til at få vores nuværende position 
+ved at vi siger hvis den kan finde navigator.geolocation så får den nuværende position 
+ved at vi siger navigator.geolocation.currentposition(showPosition). 
+Hvis den ikke kan finde vores geolocation vil den console logge en besked om at den ikke kunne finde vores geolocation.  
+Funktionen getLocation bliver også kaldt i draw, 
+hvor vi laver et if-statment som tager framecount variablen checker om den er lig med 1 
+eller vil vi tage moduæren af frameCount og 3600 sekunder. Den checker om det er lig med 0.
+ Dette vil opdatere vores position hvert tiende minut.
 
-//Denne metode sætter pærens temperatur og henter appens position
+*/
+//Denne metode henter appens position
 function getLocation() {
   timeNow = new Date();
 
@@ -170,7 +180,19 @@ function setTemperature() {
 /*
 I showPosition henter vi data omkring vores koordinater. Vi henter også data omkring
 solopgang og solnedgang. Derefter har vi et if-statement der siger hvis der ikke sat en timer skal 
-den sætte temperaturen efter solopgang - solnedgang(rutine)
+den sætte temperaturen efter solopgang - solnedgang(rutine). 
+Dette gør vi ved at vi laver en lokal variabel kaldet apiURL sætter det lig med de ting vi vil bruge til programmet 
+og i dette tilfælde vil vi bruge vores breddegrad og længdegrad. 
+Derefter bruger vi loadJSON funktionen til at fortolke det data som vi henter fra OpenWeather API i apiURl variablen. 
+Under loadJSON funktionen laver vi variablerne sunrise og sunset sætter det lig med data.sys.sunrise/sunset og ganger det med 1000. 
+Data.sys.sunrise/sunset finder systemets lokale solopgang og solnedgang. 
+Vi ganger med 1000 fordi vi vil have det i millisekunder. 
+Derefter laver vi en variabel locationName der indeholder navnet for lokationen fx Holbæk. 
+Derefter laver vi nogle nye variabler kaldet sunR og sunS sætter dem, hvor vi laver nye date objekter med parametrene sunrise og sunset.
+ Så vi laver vi en string hvor vi henter data mængde af timer og minutter der til solopgang og solnedgang
+  hvorefter vi viser ved i laver en div kaldet geo div. 
+  Til sidst har vi et if-statement der checker om der ikke blev sat en timer 
+  hvis det er tilfældet skal den kalde på setTemperature(); funktionen.
 */
 function showPosition(position) {
   console.log("Henter geodata");
@@ -193,7 +215,18 @@ function showPosition(position) {
     }
   });
 }
-
+/*vi laver en variabel kaldet timeNow sætter det lig med constructoren new Date(); 
+som laver et nyt data objekt med den nuværende dato og tid. 
+Derefter bruger vi metoden setTime som beregner den tid siden 1970 til timeNow variablen,
+ hvor vi inde i parenteserne skriver getTime som vil give os tiden i millisekunder. 
+ Her printer vi timeNow i timer, minutter og sekunder ved at vi laver en string. 
+ I draw funktionen opdaterer vi showTime funktionen hvert sekund så man får den nuværende tid. 
+ Vi opdaterer showTime funktionen ved at vi laver et if-statement, 
+ hvor vi bruger en P5.js variabel kaldet frameCount som består af det antal af nummer siden programmet har startet.
+  Vi tager modulær af 60 og frameCount. Modulær symbolet returner resten af en division operation. 
+  Derefter checker vi om denne mængde der er til rest er 0 og hvis det er 0 kalder vi showTime funktionen.
+   Altså så kort sagt vi ser om frameCount kan blive divideret med 60 hvis det er et sekund gået. 
+*/
 //showTime viser den nuværende tid 
 function showTime() {
   timeNow = new Date();
@@ -286,11 +319,21 @@ let timeCommands = [{
   },
 ];
 
+/*
+Funktionen parseResult sker hvis der bliver sagt bedtime. 
+Det her vi laver en variabel kaldet mostrecentword og koventerer det til en string. 
+Derefter viser vi mostrecentword med speechDiv i programmet. 
+Hvis bedtime bliver sagt vil bedTime være lig med true. 
+Derefter laver vi to lokale variabler ta og indx der vil lægge 1 til vores array kommandoer 
+så vi får den korrekte placering da det første ord i en array har altid positionen 0. 
+Derefter for hver ord der indeholder i vores array som bliver sagt vil vi clearinterval(timer) 
+og sæt timerSet = true;. 
+Vi ganger også dens position med 1 time så vi får den korrekte mængde af timer brugeren vil have. 
+Derefter vil vi opdatere timeren hvert sekund og vise det ved at bruge timeDiv, hvor ta og indx inkrementere. 
 
+*/
 function parseResult() {
   /*    
-  recognition system will often append words into phrases.
-  so hack here is to only use the last word:
   Laver mostrecentword til en string
   */
   var mostrecentword = myRec.resultString.split(' ').pop();
@@ -370,6 +413,15 @@ function changeBrightness() {
   // make the HTTP call with the JSON object:
   setLight(lightNumber, lightState);
 }
+/*
+Funktionen changeTemperature har til formål at ændre temperaturen. 
+Funktionen changeTemperature har parameter t. I starten af funktionen laver vi en variable der hedder temperature.
+ Derefter er der en if-statement som siger at hvis t er størrer end nul, så sætter den t = temperature. 
+ Ellers skal den sætte temperature til this.value, som er sliderens værdi.
+  Derefter har vi en variable som hedder lightState som er afhængig af temperature og on lyset er tændt.
+   Det sidste den går er at sætte lyset nummer og stadige.
+
+*/
 //Det her vi ændre temperaturen 
 function changeTemperature(t) {
   var temperature;
