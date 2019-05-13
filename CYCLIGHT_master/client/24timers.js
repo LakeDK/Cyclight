@@ -162,7 +162,7 @@ function setTemperature() {
     changeTemperature(sliderValue);
     console.log("Solopgang");
 
-    //HVIS det er en halv time før solnedgang skrues kelvintemperaturen langsomt op 
+    //HVIS det er en halv time før solnedgang skrues kelvintemperaturen langsomt ned
   } else if (sunSMillis - changeTemperatureDuration < timeNowMillis && timeNowMillis < sunSMillis) {
     var sliderValue = map(millisSinceSunrise, changeTemperatureDuration, 0, kelvinSliderMax, kelvinSliderMin);
     temper.value(sliderValue);
